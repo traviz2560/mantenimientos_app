@@ -1,5 +1,5 @@
-uploads/
-generated_reports/
+uploads/*
+generated_reports/*
 
 !uploads/.gitkeep
 !generated_reports/.gitkeep
