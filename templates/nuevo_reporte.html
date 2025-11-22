@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h2 class="h4 mb-0">Crear Nuevo Reporte de Mantenimiento</h2>
+        <a href="{{ url_for('index') }}" class="btn btn-sm btn-outline-secondary">Cancelar</a>
+    </div>
+    <div class="card-body">
+        <form action="{{ url_for('guardar') }}" method="POST" enctype="multipart/form-data">
+            
+            <h5 class="mb-3 text-primary">Información del Activo</h5>
+
+            <!-- Fila 1: Clasificación y Tipo -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="clase_id" class="form-label"><strong>Clasificación:</strong></label>
+                    <select id="clase_id" name="clase_id" class="form-select" required>
+                        <option value="" disabled selected>-- Selecciona una clasificación --</option>
+                        {% for clase in clases %}
+                            <option value="{{ clase.id }}">{{ clase.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="tipo_mantenimiento" class="form-label"><strong>Tipo de Mantenimiento:</strong></label>
+                    <select id="tipo_mantenimiento" name="tipo_mantenimiento" class="form-select">
+                        <option value="Preventivo" selected>Preventivo</option>
+                        <option value="Correctivo">Correctivo</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Fila 2: Locación y Descripción del Activo -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="locacion" class="form-label"><strong>Locación:</strong></label>
+                    <input type="text" id="locacion" name="locacion" class="form-control" placeholder="Ej: EA12803" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="descripcion_activo" class="form-label"><strong>Descripción del Activo:</strong></label>
+                    <input type="text" id="descripcion_activo" name="descripcion_activo" class="form-control" placeholder="Ej: UNIDAD DE BOMBEO MECÁNICO NATIONAL 160D" required>
+                </div>
+            </div>
+            
+            <hr>
+            <h5 class="mb-3 text-primary">Detalles de Ejecución</h5>
+
+            <!-- Fila 3: Código, Área y Mes Programado -->
+            <div class="row mb-3">
+                 <div class="col-md-5">
+                    <label for="codigo_mantenimiento" class="form-label"><strong>Código del Mantenimiento:</strong></label>
+                    <input type="text" id="codigo_mantenimiento" name="codigo_mantenimiento" class="form-control" placeholder="Ej: EYP_MP_UBM_8640_HORAS" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="area" class="form-label"><strong>Área:</strong></label>
+                    <select id="area" name="area" class="form-select" required>
+                        <option value="Mecánica" selected>Mecánica</option>
+                        <option value="Gasfitería">Gasfitería</option>
+                        <option value="Instrumentación">Instrumentación</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="mes_programado" class="form-label"><strong>Mes Programado:</strong></label>
+                    <select id="mes_programado" name="mes_programado" class="form-select">
+                        {% for num, nombre in meses.items() %}
+                            <option value="{{ num }}">{{ nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Fila 4: Fecha y Estado -->
+            <div class="row mb-3">
+                 <div class="col-md-6">
+                    <label for="fecha_realizacion" class="form-label"><strong>Fecha de Realización:</strong></label>
+                    <input type="date" id="fecha_realizacion" name="fecha_realizacion" class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label for="estado" class="form-label"><strong>Estado:</strong></label>
+                    <select id="estado" name="estado" class="form-select">
+                        <option value="Programado" selected>Programado</option>
+                        <option value="Realizado">Realizado</option>
+                        <option value="Cancelado">Cancelado</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Fila 5: Autor y Supervisor -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="autor" class="form-label"><strong>Realizado por (Autor):</strong></label>
+                    <input type="text" id="autor" name="autor" class="form-control" placeholder="Nombre del técnico">
+                </div>
+                <div class="col-md-6">
+                    <label for="supervisor" class="form-label"><strong>Supervisor:</strong></label>
+                    <input type="text" id="supervisor" name="supervisor" class="form-control" placeholder="Nombre del supervisor">
+                </div>
+            </div>
+            
+            <hr>
+            <h5 class="mb-3 text-primary">Informe y Evidencias</h5>
+
+            <!-- Detalle de Actividades -->
+            <div class="form-group mb-3">
+                <label for="detalle_mantenimiento" class="form-label">Detalle del Mantenimiento (Usuario):</label>
+                <textarea class="form-control" id="detalle_mantenimiento" name="detalle_mantenimiento" rows="5" placeholder="Ingrese aquí la lista de actividades realizadas..."></textarea>
+            </div>
+
+            <div class="form-group mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label for="detalle_sistema" class="form-label mb-0">Detalle del Sistema (Generado por IA):</label>
+                    <button type="button" id="btn-generar-detalle" class="btn btn-sm btn-outline-primary" title="Generar detalle usando IA" disabled>
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        Generar
+                    </button>
+                </div>
+                <textarea class="form-control" id="detalle_sistema" name="detalle_sistema" rows="5" readonly placeholder="Este campo se llenará con la IA a partir del detalle del usuario."></textarea>
+            </div>
+
+            <div class="form-group mb-3">
+                 <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label for="informacion_estructurada" class="form-label mb-0">Información Estructurada (Generado por IA):</label>
+                    <button type="button" id="btn-generar-estructura" class="btn btn-sm btn-outline-primary" title="Generar estructura JSON usando IA" disabled>
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        Generar
+                    </button>
+                </div>
+                <textarea class="form-control font-monospace" id="informacion_estructurada" name="informacion_estructurada" rows="6" readonly placeholder="Este campo se llenará con la IA a partir del detalle del sistema."></textarea>
+            </div>
+            
+            <!-- Subida de Evidencias -->
+            <div class="mb-3">
+                <label for="evidencias" class="form-label"><strong>Añadir evidencias:</strong></label>
+                <input type="file" id="evidencias" name="evidencias" class="form-control" multiple>
+            </div>
+
+            <hr>
+            
+            <div class="d-flex justify-content-end">
+                <button type="submit" class="btn btn-primary px-5">Crear Reporte</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h2 class="h4 mb-0">Detalle del Mantenimiento #{{ mantenimiento.id }}</h2>
+        <a href="{{ url_for('index') }}" class="btn btn-sm btn-outline-secondary">Volver al listado</a>
+    </div>
+    <div class="card-body">
+        <form action="{{ url_for('guardar') }}" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="id" value="{{ mantenimiento.id }}">
+            
+            <h5 class="mb-3 text-primary">Información del Activo</h5>
+
+            <!-- Fila 1: Clasificación y Tipo -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="clase_id" class="form-label"><strong>Clasificación:</strong></label>
+                    <select id="clase_id" name="clase_id" class="form-select">
+                        {% for clase in clases %}
+                            <option value="{{ clase.id }}" {% if clase.id == mantenimiento.clase_id %}selected{% endif %}>{{ clase.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="tipo_mantenimiento" class="form-label"><strong>Tipo de Mantenimiento:</strong></label>
+                    <select id="tipo_mantenimiento" name="tipo_mantenimiento" class="form-select">
+                        <option value="Preventivo" {% if mantenimiento.tipo_mantenimiento == 'Preventivo' %}selected{% endif %}>Preventivo</option>
+                        <option value="Correctivo" {% if mantenimiento.tipo_mantenimiento == 'Correctivo' %}selected{% endif %}>Correctivo</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Fila 2: Locación y Descripción del Activo -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="locacion" class="form-label"><strong>Locación:</strong></label>
+                    <input type="text" id="locacion" name="locacion" class="form-control" value="{{ mantenimiento.locacion or '' }}">
+                </div>
+                <div class="col-md-6">
+                    <label for="descripcion_activo" class="form-label"><strong>Descripción del Activo:</strong></label>
+                    <input type="text" id="descripcion_activo" name="descripcion_activo" class="form-control" value="{{ mantenimiento.descripcion_activo or '' }}">
+                </div>
+            </div>
+            
+            <hr>
+            <h5 class="mb-3 text-primary">Detalles de Ejecución</h5>
+
+            <!-- Fila 3: Código y Mes Programado -->
+            <div class="row mb-3">
+                 <div class="col-md-5">
+                    <label for="codigo_mantenimiento" class="form-label"><strong>Código del Mantenimiento:</strong></label>
+                    <input type="text" id="codigo_mantenimiento" name="codigo_mantenimiento" class="form-control" value="{{ mantenimiento.codigo_mantenimiento or '' }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="area" class="form-label"><strong>Área:</strong></label>
+                    <select id="area" name="area" class="form-select" required>
+                        <option value="Mecánica" {% if mantenimiento.area == 'Mecánica' %}selected{% endif %}>Mecánica</option>
+                        <option value="Gasfitería" {% if mantenimiento.area == 'Gasfitería' %}selected{% endif %}>Gasfitería</option>
+                        <option value="Instrumentación" {% if mantenimiento.area == 'Instrumentación' %}selected{% endif %}>Instrumentación</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="mes_programado" class="form-label"><strong>Mes Programado:</strong></label>
+                    <select id="mes_programado" name="mes_programado" class="form-select">
+                        {% for num, nombre in meses.items() %}
+                            <option value="{{ num }}" {% if num == mantenimiento.mes_programado %}selected{% endif %}>{{ nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Fila 4: Fecha y Estado -->
+            <div class="row mb-3">
+                 <div class="col-md-6">
+                    <label for="fecha_realizacion" class="form-label"><strong>Fecha de Realización:</strong></label>
+                    <input type="date" id="fecha_realizacion" name="fecha_realizacion" class="form-control" value="{{ mantenimiento.fecha_realizacion.strftime('%Y-%m-%d') if mantenimiento.fecha_realizacion }}">
+                </div>
+                <div class="col-md-6">
+                    <label for="estado" class="form-label"><strong>Estado:</strong></label>
+                    <select id="estado" name="estado" class="form-select">
+                        <option value="Programado" {% if mantenimiento.estado == 'Programado' %}selected{% endif %}>Programado</option>
+                        <option value="Realizado" {% if mantenimiento.estado == 'Realizado' %}selected{% endif %}>Realizado</option>
+                        <option value="Cancelado" {% if mantenimiento.estado == 'Cancelado' %}selected{% endif %}>Cancelado</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Fila 5 (REORDENADA): Autor y Supervisor -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="autor" class="form-label"><strong>Realizado por (Autor):</strong></label>
+                    <input type="text" id="autor" name="autor" class="form-control" value="{{ mantenimiento.autor or '' }}">
+                </div>
+                <div class="col-md-6">
+                    <label for="supervisor" class="form-label"><strong>Supervisor:</strong></label>
+                    <input type="text" id="supervisor" name="supervisor" class="form-control" value="{{ mantenimiento.supervisor or '' }}">
+                </div>
+            </div>
+            
+            <hr>
+            <h5 class="mb-3 text-primary">Informe y Evidencias</h5>
+
+            <!-- Detalle de Actividades -->
+            <div class="form-group mb-3">
+                <label for="detalle_mantenimiento" class="form-label">Detalle del Mantenimiento (Usuario):</label>
+                <textarea class="form-control" id="detalle_mantenimiento" name="detalle_mantenimiento" rows="5" placeholder="Ingrese aquí la lista de actividades realizadas...">{{ mantenimiento.detalle_mantenimiento_usuario or '' }}</textarea>
+            </div>
+
+            <div class="form-group mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label for="detalle_sistema" class="form-label mb-0">Detalle del Sistema (Generado por IA):</label>
+                    <button type="button" id="btn-generar-detalle" class="btn btn-sm btn-outline-primary" title="Generar detalle usando IA" disabled>
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        Generar
+                    </button>
+                </div>
+                <textarea class="form-control" id="detalle_sistema" name="detalle_sistema" rows="5" placeholder="Este campo se llenará con la IA a partir del detalle del usuario.">{{ mantenimiento.detalle_mantenimiento_sistema or '' }}</textarea>
+            </div>
+
+            <div class="form-group mb-3">
+                 <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label for="informacion_estructurada" class="form-label mb-0">Información Estructurada (Generado por IA):</label>
+                    <button type="button" id="btn-generar-estructura" class="btn btn-sm btn-outline-primary" title="Generar estructura JSON usando IA" disabled>
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        Generar
+                    </button>
+                </div>
+                <textarea class="form-control font-monospace" id="informacion_estructurada" name="informacion_estructurada" rows="6" placeholder="Este campo se llenará con la IA a partir del detalle del sistema.">{{ mantenimiento.informacion_estructurada or '' }}</textarea>
+            </div>
+            
+            <!-- Subida de Evidencias -->
+            <div class="mb-3">
+                <label for="evidencias" class="form-label"><strong>Añadir nuevas evidencias:</strong></label>
+                <input type="file" id="evidencias" name="evidencias" class="form-control" multiple>
+            </div>
+
+            <!-- Lista de Evidencias Existentes -->
+            {% if mantenimiento.evidencias %}
+                <div class="mb-3">
+                    <p><strong>Evidencias actuales:</strong></p>
+                    <div class="list-group">
+                    {% for evidencia in mantenimiento.evidencias %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <a href="{{ url_for('uploaded_file', filename=evidencia.nombre_archivo) }}" target="_blank" class="me-3 text-truncate">{{ evidencia.nombre_archivo }}</a>
+                            <button type="button" class="btn btn-sm btn-danger" onclick="eliminarEvidencia('{{ evidencia.id }}')">Eliminar</button>
+                        </div>
+                    {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <hr>
+
+            <div class="d-flex justify-content-between align-items-center">
+                
+                <!-- Botones de la izquierda: Eliminar, Generar y Descargar -->
+                <div>
+                    <button type="button" class="btn btn-danger" onclick="eliminarMantenimiento('{{ mantenimiento.id }}')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>
+                        Eliminar Mantenimiento
+                    </button>
+                    
+                    <button type="button" id="btn-generar-reporte" class="btn btn-info text-white" 
+                            onclick="generarReporteWord('{{ mantenimiento.id }}')">
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-word" viewBox="0 0 16 16"><path d="M5.48 5.635a.5.5 0 1 0-.96.268l-2.094 7.5a.5.5 0 0 0 .96.268l.53-1.899h3.16l.53 1.899a.5.5 0 0 0 .96-.268l-2.094-7.5zM4.332 9.472l.9-3.235.9 3.235H4.332z"/><path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z"/><path d="M11.231 9.973a.5.5 0 0 0-.492.576l.339 1.138a.5.5 0 0 0 .984 0l.339-1.138a.5.5 0 0 0-.492-.576h-.675z"/></svg>
+                        Generar Reporte
+                    </button>
+                    
+                    {% if mantenimiento.nombre_archivo_reporte %}
+                    <a href="{{ url_for('descargar_reporte', filename=mantenimiento.nombre_archivo_reporte) }}" 
+                       class="btn btn-success">
+                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg>
+                        Descargar Reporte
+                    </a>
+                    {% endif %}
+                </div>
+
+                <!-- Botón de la derecha: Guardar Cambios -->
+                <button type="submit" class="btn btn-primary px-4">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Sección de Notificaciones (Flash Messages) -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white">
+        <h2 class="h4 mb-0">Filtros y Búsqueda</h2>
+    </div>
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('index') }}" class="row g-3 align-items-center">
+            <!-- Filtro por Mes -->
+            <div class="col-md-4">
+                <label for="mes" class="form-label">Filtrar por Mes Programado:</label>
+                <select name="mes" id="mes" class="form-select">
+                    <option value="">Todos los meses</option>
+                    {% for num, nombre in meses.items() %}
+                        <option value="{{ num }}" {% if num == mes_seleccionado %}selected{% endif %}>{{ nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- NUEVO: Filtro por Área -->
+            <div class="col-md-4">
+                <label for="area" class="form-label">Filtrar por Área:</label>
+                <select name="area" id="area" class="form-select">
+                    <option value="">Todas las áreas</option>
+                    {% for area in areas %}
+                        <option value="{{ area }}" {% if area == area_seleccionada %}selected{% endif %}>{{ area }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Botones -->
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+            </div>
+            <div class="col-md-2">
+                <a href="{{ url_for('index') }}" class="btn btn-outline-secondary w-100">Limpiar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white">
+        <h2 class="h4 mb-0">Lista de Reportes de Mantenimiento</h2>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col">Clase</th>
+                        <th scope="col">Locación</th>
+                        <th scope="col">Descripción del Activo</th>
+                        <th scope="col">Mes Programado</th>
+                        <th scope="col">Fecha Realización</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col" class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for mant in mantenimientos %}
+                    <tr>
+                        <td>{{ mant.clase.nombre }}</td>
+                        <td>{{ mant.locacion }}</td>
+                        <td>{{ mant.descripcion_activo }}</td>
+                        <td>{{ meses[mant.mes_programado] }}</td>
+                        <td>{{ mant.fecha_realizacion.strftime('%Y-%m-%d') if mant.fecha_realizacion else 'Pendiente' }}</td>
+                        <td>
+                            <span class="badge {% if mant.estado == 'Realizado' %}bg-success{% else %}bg-warning{% endif %}">
+                                {{ mant.estado }}
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ url_for('mantenimiento_detalle', id=mant.id) }}" class="btn btn-sm btn-outline-primary">Ver/Editar</a>
+                            <!-- Formulario para el botón de eliminar -->
+                            {% if mant.nombre_archivo_reporte %}
+                            <a href="{{ url_for('descargar_reporte', filename=mant.nombre_archivo_reporte) }}" class="btn btn-sm btn-outline-success" title="Descargar Reporte Word">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg>
+                            </a>
+                            {% endif %}
+                            <form action="{{ url_for('eliminar_mantenimiento', id=mant.id) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este mantenimiento?');">
+                                <input type="hidden" name="mes_origen" value="{{ mes_seleccionado }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">No hay mantenimientos que coincidan con el filtro.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
