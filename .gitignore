@@ -1,6 +1,9 @@
 uploads/
 generated_reports/
 
+!uploads/.gitkeep
+!generated_reports/.gitkeep
+
 # Python-generated files
 __pycache__/
 *.py[oc]
